@@ -47,7 +47,7 @@ specify several values using several `-k`.
 ### test file
 
 The `test.json` file is a pseudo-random file containing 6 rows of json objects
-(no nested objects or arrays).
+(no nested objects or arrays). [json generator](http://www.json-generator.com/)
 
 I generated up to a 1gb test file using awk:
 
@@ -62,7 +62,7 @@ This repeats each chunk of lines. Because I'm not an awk wizard, [google](https:
 Some quick timings:
 
 ```
-mochi:json2csv (master|✔) > ls -l
+mochi:jsonrow2csv (master|✔) > ls -l
 total 1126440
 drwxrwxr-x 3 hwchen hwchen       4096 Apr 21 23:21 src
 drwxrwxr-x 4 hwchen hwchen       4096 Apr 23 13:29 target
@@ -72,7 +72,7 @@ drwxrwxr-x 4 hwchen hwchen       4096 Apr 23 13:29 target
 -rw-rw-r-- 1 hwchen hwchen  104764404 Apr 23 13:59 testfile-medium.txt
 -rw-rw-r-- 1 hwchen hwchen    1027102 Apr 23 13:57 testfile-small.txt
 -rw-rw-r-- 1 hwchen hwchen       5738 Apr 23 13:21 test.json
-mochi:json2csv (master|✔) > cargo build --release && time cat testfile-large.txt | pv --rate | ./target/release/main > /dev/null
+mochi:jsonrow2csv (master|✔) > cargo build --release && time cat testfile-large.txt | pv --rate | ./target/release/main > /dev/null
     Finished release [optimized] target(s) in 0.0 secs
     real 4.86s]
     user 0.00
