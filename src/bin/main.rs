@@ -1,6 +1,6 @@
 #[macro_use]
 extern crate clap;
-extern crate json2csv;
+extern crate jsonrow2csv;
 
 use std::env;
 use std::io;
@@ -8,19 +8,18 @@ use std::io::{Read, Write};
 use std::fs::File;
 
 use clap::{Arg, App};
-use json2csv::json_to_csv;
+use jsonrow2csv::json_to_csv;
 
 // TODO:
-// - set output file option
-// - set keys option
-// - can I realistically remove allocation on lines()?
+// - add logging
+// - add after_help to explain the json keys
 
 const KEYS_ENV_VAR: &'static str = "KEYS";
 
 fn main() {
     let app = App::new("json2csv")
         .version(crate_version!())
-        .author("walther")
+        .author(crate_authors!())
         .about("converts lines of json to csv")
         .arg(Arg::with_name("file_in")
              .value_name("FILE_IN/STDIN")
@@ -51,6 +50,7 @@ fn main() {
     };
 
     // a little convoluted to work around two possible borrows.
+    // Calls the main worker fn in either branch.
     match app.values_of("keys") {
         Some(keys) => {
             let keys: Vec<_> = keys.collect();
