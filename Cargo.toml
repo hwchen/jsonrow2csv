@@ -4,5 +4,6 @@ name = "json2csv"
 version = "0.1.0"
 
 [dependencies]
+clap = "2.23.3"
 csv = "0.15.0"
 json = "0.11.6"
