@@ -1,10 +1,16 @@
 extern crate csv;
 extern crate json;
+#[macro_use]
+pub extern crate slog;
+extern crate slog_stdlog;
 
 use csv::{Writer, QuoteStyle};
 use json::JsonValue;
 use json::object::Object;
+use slog::{Drain, Logger};
+use slog_stdlog::StdLog;
 
+use std::error::Error;
 use std::io::{BufRead, BufReader, Read, Write};
 
 // Perf note: naive is 4.18s reading from file, 4.66 from stdin (out to dev/null)
@@ -15,8 +21,10 @@ pub fn json_to_csv<R: Read, W: Write>(
     reader: R,
     writer: W,
     keys: &[&str],
+    logger: Option<Logger>,
     )
 {
+    let logger = logger.unwrap_or(Logger::root(StdLog.fuse(), o!()));
     let reader = BufReader::new(reader);
 
     let mut csv_writer = Writer::from_writer(writer)
@@ -25,13 +33,21 @@ pub fn json_to_csv<R: Read, W: Write>(
         .quote_style(QuoteStyle::Necessary);
 
 
-    for line in reader.lines() {
+    for (i, line) in reader.lines().enumerate() {
         if let Ok(line) = line {
-            if let Ok(parsed) = json::parse(&line) {
-                if let JsonValue::Object(object) = parsed {
-                    let row = makerow(keys, &object);
-                    csv_writer.encode(row).expect("problem writing csv");
-                }
+            match json::parse(&line) {
+                Ok(parsed) => {
+                    if let JsonValue::Object(object) = parsed {
+                        let row = makerow(keys, &object);
+                        csv_writer.encode(row).expect("problem writing csv");
+                    }
+                },
+                Err(err) => {
+                    error!(logger, "ParseError";
+                        "line" => i,
+                        "msg" => err.description(),
+                    )
+                },
             }
         }
     }

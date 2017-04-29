@@ -1,17 +1,22 @@
 #[macro_use]
 extern crate clap;
 extern crate jsonrow2csv;
+#[macro_use]
+extern crate slog;
+extern crate slog_async;
+extern crate slog_term;
 
 use std::env;
 use std::io;
 use std::io::{Read, Write};
 use std::fs::File;
+use std::sync::Arc;
 
 use clap::{Arg, App};
 use jsonrow2csv::json_to_csv;
+use slog::{Drain, Logger};
 
 // TODO:
-// - add logging
 // - add after_help to explain the json keys
 
 const KEYS_ENV_VAR: &'static str = "KEYS";
@@ -21,6 +26,10 @@ fn main() {
         .version(crate_version!())
         .author(crate_authors!())
         .about("converts lines of json to csv")
+        .after_help("ADDITIONAL INFO: \n\
+            Errors logged to STDERR.\n\
+            STDIN default input.\n\
+            STDOUT default output.")
         .arg(Arg::with_name("file_in")
              .value_name("FILE_IN/STDIN")
              .help("file to read from"))
@@ -39,6 +48,11 @@ fn main() {
              .help("for each row, filter by keys. Takes multiple values"))
         .get_matches();
 
+    let decorator = slog_term::TermDecorator::new().build();
+    let drain = slog_term::CompactFormat::new(decorator).build().fuse();
+    let drain = slog_async::Async::new(drain).build().fuse();
+    let logger = Logger::root(Arc::new(drain), o!());
+
     let reader: Box<Read> = match app.value_of("file_in") {
         Some(path) => Box::new(File::open(path).unwrap()),
         _ => Box::new(io::stdin()),
@@ -54,12 +68,12 @@ fn main() {
     match app.values_of("keys") {
         Some(keys) => {
             let keys: Vec<_> = keys.collect();
-            json_to_csv(reader, writer, &keys);
+            json_to_csv(reader, writer, &keys, Some(logger));
         },
         _ => {
             let keys = env::var(KEYS_ENV_VAR) .expect("can't find env var");
             let keys: Vec<_> = keys.split(',').collect();
-            json_to_csv(reader, writer, &keys);
+            json_to_csv(reader, writer, &keys, Some(logger));
         }
     };
 
