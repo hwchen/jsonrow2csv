@@ -16,7 +16,6 @@ use std::io::{BufRead, BufReader, Read, Write};
 // Perf note: naive is 4.18s reading from file, 4.66 from stdin (out to dev/null)
 // About 200MiB/s
 
-// Silently pass errors?
 pub fn json_to_csv<R: Read, W: Write>(
     reader: R,
     writer: W,
@@ -61,13 +60,6 @@ fn makerow<'a>(keys: &[&str], object: &'a Object) -> Vec<&'a str> {
                 None => "",
             }
         }).collect()
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-    }
 }
 
 //keys = os.environ.get('KEYS').split(',')
