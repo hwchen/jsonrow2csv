@@ -16,9 +16,6 @@ use clap::{Arg, App};
 use jsonrow2csv::json_to_csv;
 use slog::{Drain, Logger};
 
-// TODO:
-// - add after_help to explain the json keys
-
 const KEYS_ENV_VAR: &'static str = "KEYS";
 
 fn main() {
@@ -26,18 +23,19 @@ fn main() {
         .version(crate_version!())
         .author(crate_authors!())
         .about("converts lines of json to csv")
-        .after_help("ADDITIONAL INFO: \n\
-            Errors logged to STDERR.\n\
-            STDIN default input.\n\
-            STDOUT default output.")
+        .after_help("ADDITIONAL INFO: \n    \
+            1) Errors logged to STDERR.\n\n    \
+            2) This program can select keys from each row of JSON;\n       \
+            use either -k option for each key, or specify all keys\n       \
+            as comma-separated string in env var KEYS.")
         .arg(Arg::with_name("file_in")
-             .value_name("FILE_IN/STDIN")
-             .help("file to read from"))
+             .value_name("FILE_IN")
+             .help("file to read from. Default STDIN"))
         .arg(Arg::with_name("file_out")
              .value_name("FILE_OUT")
              .short("o")
              .takes_value(true)
-             .help("output to file"))
+             .help("output to file. Default STDOUT"))
         .arg(Arg::with_name("keys")
              .value_name("KEYS")
              .short("k")
@@ -45,7 +43,7 @@ fn main() {
              .takes_value(true)
              .multiple(true)
              .number_of_values(1)
-             .help("for each row, filter by keys. Takes multiple values"))
+             .help("for each row, filter by keys. Takes multiple values, one per -k"))
         .get_matches();
 
     let decorator = slog_term::TermDecorator::new().build();
