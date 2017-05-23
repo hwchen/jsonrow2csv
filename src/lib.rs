@@ -4,7 +4,7 @@ extern crate json;
 pub extern crate slog;
 extern crate slog_stdlog;
 
-use csv::{Writer, QuoteStyle};
+use csv::{WriterBuilder, QuoteStyle};
 use json::JsonValue;
 use json::object::Object;
 use slog::{Drain, Logger};
@@ -26,10 +26,11 @@ pub fn json_to_csv<R: Read, W: Write>(
     let logger = logger.unwrap_or(Logger::root(StdLog.fuse(), o!()));
     let reader = BufReader::new(reader);
 
-    let mut csv_writer = Writer::from_writer(writer)
+    let mut csv_writer = WriterBuilder::new()
         .escape(b'\\')
         .quote(b'\'')
-        .quote_style(QuoteStyle::Necessary);
+        .quote_style(QuoteStyle::Necessary)
+        .from_writer(writer);
 
 
     for (i, line) in reader.lines().enumerate() {
@@ -38,7 +39,7 @@ pub fn json_to_csv<R: Read, W: Write>(
                 Ok(parsed) => {
                     if let JsonValue::Object(object) = parsed {
                         let row = makerow(keys, &object);
-                        csv_writer.encode(row).expect("problem writing csv");
+                        csv_writer.write_record(row).expect("problem writing csv");
                     }
                 },
                 Err(err) => {
