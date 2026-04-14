@@ -19,9 +19,16 @@ bench-multiple:
     "./c3/target/jsonrow2csv -k index -k '_id' test.jsonl" \
     "./target/release/main -k index -k '_id' test.jsonl"
 
-bench-big-multiple:
+bench-big-multiple-early:
     cargo build --release && \
     werk -f c3/Werkfile -Dprofile=release && \
     hyperfine --warmup 10 \
     "./c3/target/jsonrow2csv -k index -k '_id' test-large.jsonl" \
     "./target/release/main -k index -k '_id' test-large.jsonl"
+
+bench-big-multiple-late:
+    cargo build --release && \
+    werk -f c3/Werkfile -Dprofile=release && \
+    hyperfine --warmup 10 \
+    "./c3/target/jsonrow2csv -k favoriteFruit -k registered test-large.jsonl" \
+    "./target/release/main -k favoriteFruit -k registered test-large.jsonl"

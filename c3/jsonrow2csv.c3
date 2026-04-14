@@ -35,11 +35,17 @@ fn int main(String[] args) {
 			}
 			return 1;
 		}
+
+		sz line_field_count;
+
 		Lexer lexer;
 		lexer.init((String)line);
 		while (try tag = lexer.next()) {
 			if (tag != FIELD_NAME) continue;
+			if (line_field_count >= fields.len) break;
+
 			if (try field_idx = opts.keys.index_of(lexer.token_slice)) {
+				line_field_count ++;
 				Tag val_tag = lexer.next()!!;
 				// Only support unnested values right now.
 				switch (val_tag) {

@@ -1,6 +1,7 @@
 module json::lex;
 
 // Assumes correct json. Does not even check commas (just skips as whitespace)
+// TODO neg number
 
 import std::core::test;
 import std::io;
