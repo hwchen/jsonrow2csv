@@ -1,7 +1,6 @@
 module json::lex;
 
 // Assumes correct json. Does not even check commas (just skips as whitespace)
-// TODO neg number
 
 import std::core::test;
 import std::io;
@@ -74,6 +73,7 @@ fn Tag? Lexer.next(&l) {
 				l.curr += 5;
 				return FALSE;
 			}
+		case '-':
 		case '0'..'9':
 			sz len = 1;
 			while LOOP: (true) {
@@ -81,6 +81,7 @@ fn Tag? Lexer.next(&l) {
 					break LOOP;
 				}
 				switch (l.buffer[l.curr + len]) {
+					case '.':
 					case '0'..'9':
 						len += 1;
 					default:
