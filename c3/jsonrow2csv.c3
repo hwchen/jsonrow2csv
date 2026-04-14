@@ -1,6 +1,7 @@
 module jsonrow2csv;
 import std::collections::list;
 import std::core::log;
+import std::core::mem;
 import std::core::string;
 import std::io;
 import bufio;
@@ -13,6 +14,8 @@ fn int main(String[] args) {
 		log::error("cli parse error: %s", err);
 		return 1;
 	}
+
+	String[] fields = alloc::new_array(mem, String, opts.keys.len);
 
 	WriteBuffer out;
 	char[4096 * 8] out_buf;
@@ -35,7 +38,8 @@ fn int main(String[] args) {
 		Lexer lexer;
 		lexer.init((String)line);
 		while (try tag = lexer.next()) {
-			if (tag == FIELD_NAME && contains(opts.keys, lexer.token_slice)) {
+			if (tag != FIELD_NAME) continue;
+			if (try field_idx = opts.keys.index_of(lexer.token_slice)) {
 				Tag val_tag = lexer.next()!!;
 				// Only support unnested values right now.
 				switch (val_tag) {
@@ -43,7 +47,8 @@ fn int main(String[] args) {
 					case TRUE:
 					case FALSE:
 					case STRING:
-					case NUM: out.write(lexer.token_slice)!!;
+					case NUM:
+						fields[field_idx] = ((String)lexer.token_slice).tcopy();
 
 					case ARRAY_START:
 					case ARRAY_END:
@@ -52,6 +57,13 @@ fn int main(String[] args) {
 					case FIELD_NAME: unreachable();
 				}
 			}
+		}
+
+		
+		out.write(fields[0])!!;
+		foreach (field : fields[1..]) {
+			out.write_byte(',')!!;
+			out.write(field)!!;
 		}
 		out.write_byte('\n')!!;
 	};
@@ -85,11 +97,11 @@ fn void? parse_cli(String[] args, Opts* opts, Allocator alloc = mem) {
 	};
 }
 
-fn bool contains(String[] haystack, char[] needle) {
-	foreach (item : haystack) {
+fn sz? String[].index_of(haystack, char[] needle) {
+	foreach (idx, item : haystack) {
 		if (item == (String)needle) {
-			return true;
+			return idx;
 		}
 	}
-	return false;
+	return NOT_FOUND~;
 }
