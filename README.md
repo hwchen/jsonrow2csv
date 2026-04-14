@@ -46,13 +46,13 @@ specify several values using several `-k`.
 
 ### test file
 
-The `test.json` file is a pseudo-random file containing 6 rows of json objects
+The `test.jsonl` file is a pseudo-random file containing 6 rows of json objects
 (no nested objects or arrays). [json generator](http://www.json-generator.com/)
 
 I generated up to a 1gb test file using awk:
 
 ```
-$ cat testfile-medium.txt | awk '{a[NR]=$0}END{for (i=0; i<10; i++){for(k in a){print a[k]}}}' > testfile-large.txt
+$ cat test.jsonl | awk '{a[NR]=$0}END{for (i=0; i<200000; i++){for(k in a){print a[k]}}}' > test-large.jsonl
 ```
 
 This repeats each chunk of lines. Because I'm not an awk wizard, [google](https://askubuntu.com/questions/521465/how-can-i-repeat-the-content-of-a-file-n-times/521516#521516).
