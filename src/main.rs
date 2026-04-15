@@ -1,14 +1,9 @@
-#[macro_use]
-extern crate clap;
-extern crate csv;
-extern crate json;
-
 use std::env;
 use std::io;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::fs::File;
 
-use clap::{Arg, App};
+use clap::{Arg, App, crate_authors, crate_version};
 use csv::{QuoteStyle, WriterBuilder};
 use json::JsonValue;
 
