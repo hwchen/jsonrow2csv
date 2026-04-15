@@ -10,7 +10,6 @@ use json::object::Object;
 use slog::{Drain, Logger};
 use slog_stdlog::StdLog;
 
-use std::error::Error;
 use std::io::{BufRead, BufReader, Read, Write};
 
 // Perf note: naive is 4.18s reading from file, 4.66 from stdin (out to dev/null)
@@ -45,7 +44,7 @@ pub fn json_to_csv<R: Read, W: Write>(
                 Err(err) => {
                     error!(logger, "ParseError";
                         "line" => i,
-                        "msg" => err.description(),
+                        "msg" => err.to_string(),
                     )
                 },
             }

@@ -51,12 +51,12 @@ fn main() {
     let drain = slog_async::Async::new(drain).build().fuse();
     let logger = Logger::root(Arc::new(drain), o!());
 
-    let reader: Box<Read> = match app.value_of("file_in") {
+    let reader: Box<dyn Read> = match app.value_of("file_in") {
         Some(path) => Box::new(File::open(path).unwrap()),
         _ => Box::new(io::stdin()),
     };
 
-    let writer: Box<Write> = match app.value_of("file_out") {
+    let writer: Box<dyn Write> = match app.value_of("file_out") {
         Some(path) => Box::new(File::open(path).unwrap()),
         _ => Box::new(io::stdout()),
     };
