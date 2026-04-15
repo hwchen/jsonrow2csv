@@ -1,20 +1,14 @@
 #[macro_use]
 extern crate clap;
 extern crate jsonrow2csv;
-#[macro_use]
-extern crate slog;
-extern crate slog_async;
-extern crate slog_term;
 
 use std::env;
 use std::io;
 use std::io::{Read, Write};
 use std::fs::File;
-use std::sync::Arc;
 
 use clap::{Arg, App};
 use jsonrow2csv::json_to_csv;
-use slog::{Drain, Logger};
 
 const KEYS_ENV_VAR: &'static str = "KEYS";
 
@@ -46,11 +40,6 @@ fn main() {
              .help("for each row, filter by keys. Takes multiple values, one per -k"))
         .get_matches();
 
-    let decorator = slog_term::TermDecorator::new().build();
-    let drain = slog_term::CompactFormat::new(decorator).build().fuse();
-    let drain = slog_async::Async::new(drain).build().fuse();
-    let logger = Logger::root(Arc::new(drain), o!());
-
     let reader: Box<dyn Read> = match app.value_of("file_in") {
         Some(path) => Box::new(File::open(path).unwrap()),
         _ => Box::new(io::stdin()),
@@ -61,18 +50,13 @@ fn main() {
         _ => Box::new(io::stdout()),
     };
 
-    // a little convoluted to work around two possible borrows.
-    // Calls the main worker fn in either branch.
-    match app.values_of("keys") {
-        Some(keys) => {
-            let keys: Vec<_> = keys.collect();
-            json_to_csv(reader, writer, &keys, Some(logger));
-        },
+    let keys: Vec<_> = match app.values_of("keys") {
+        Some(keys) => keys.map(|k|k.to_owned()).collect(),
         _ => {
-            let keys = env::var(KEYS_ENV_VAR) .expect("can't find env var");
-            let keys: Vec<_> = keys.split(',').collect();
-            json_to_csv(reader, writer, &keys, Some(logger));
+            let env_keys = env::var(KEYS_ENV_VAR).unwrap();
+            env_keys.split(',').map(|k| k.to_owned()).collect()
         }
     };
 
+    json_to_csv(reader, writer, &keys);
 }
