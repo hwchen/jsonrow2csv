@@ -1,14 +1,16 @@
 #[macro_use]
 extern crate clap;
-extern crate jsonrow2csv;
+extern crate csv;
+extern crate json;
 
 use std::env;
 use std::io;
-use std::io::{Read, Write};
+use std::io::{BufRead, BufReader, Read, Write};
 use std::fs::File;
 
 use clap::{Arg, App};
-use jsonrow2csv::json_to_csv;
+use csv::{QuoteStyle, WriterBuilder};
+use json::JsonValue;
 
 const KEYS_ENV_VAR: &'static str = "KEYS";
 
@@ -59,4 +61,33 @@ fn main() {
     };
 
     json_to_csv(reader, writer, &keys);
+}
+
+pub fn json_to_csv<R: Read, W: Write>(
+    reader: R,
+    writer: W,
+    keys: &[String],
+    )
+{
+    let reader = BufReader::new(reader);
+
+    let mut csv_writer = WriterBuilder::new()
+        .escape(b'\\')
+        .quote(b'\'')
+        .quote_style(QuoteStyle::Necessary)
+        .from_writer(writer);
+
+
+    for line in reader.lines() {
+        let line = line.unwrap();
+        let parsed = json::parse(&line).unwrap();
+        if let JsonValue::Object(obj) = parsed {
+            for key in keys {
+                let k = obj.get(key)
+                    .map(|k| k.as_str().unwrap())
+                    .unwrap_or("");
+                csv_writer.write_field(k).unwrap();
+            }
+        }
+    }
 }
