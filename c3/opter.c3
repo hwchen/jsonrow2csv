@@ -235,13 +235,13 @@ enum ArgType {
 macro bool Arg.is(&arg, ArgType $type, ...) {
 	$switch ($type):
 		$case SHORT:
-			$assert($vacount == 1);
-			return arg.type == SHORT && $vaexpr[0] == arg.short_name;
+			$assert($vaarg.len == 1);
+			return arg.type == SHORT && $vaarg[0] == arg.short_name;
 		$case LONG:
-			$assert($vacount == 1);
-			return arg.type == LONG && $vaexpr[0] == arg.long_name;
+			$assert($vaarg.len == 1);
+			return arg.type == LONG && $vaarg[0] == arg.long_name;
 		$case VALUE:
-			$assert($vacount == 0);
+			$assert($vaarg.len == 0);
 			return arg.type == VALUE;
 	$endswitch
 }
@@ -264,11 +264,11 @@ macro Value.as_int(value, $Type, int base = 10) {
 	// calling to_integer twice is weird, working around some weirdness
 	// where $Type! n = s.to_integer($Type, base); gives
 	// `Error: It is not possible to cast from 'uint?' to 'uint'.` when called with uint
-	if (catch err = s.to_integer($Type, base)) {
+	if (catch err = to_integer{$Type}(s, base)) {
 		io::fprintfn(io::stdout(), "Error parsing argument \"%s\": %s", value, err);
 		return OPTER_ERROR~;
 	}
-	return s.to_integer($Type, base)!!;
+	return to_integer{$Type}(s, base)!!;
 }
 
 

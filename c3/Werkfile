@@ -13,7 +13,7 @@ let cflags = profile | match {
 build "jsonrow2csv" {
     capture false
     from glob "*.c3"
-    run "c3c compile --linker=custom mold {cflags*} <in*> -o <out>"
+    run "c3c compile {cflags*} <in*> -o <out>"
 }
 
 build "testrun" {
