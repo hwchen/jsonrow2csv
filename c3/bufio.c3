@@ -7,7 +7,7 @@ import libc;
 struct StdOut {
 	File* stdout;
 	char[] buffer;
-	usz end;
+	sz end;
 }
 
 fn void StdOut.init(&self, char[] buffer) {
@@ -15,7 +15,7 @@ fn void StdOut.init(&self, char[] buffer) {
 	self.buffer = buffer;
 }
 
-fn usz? StdOut.writen(&self, char[] s) {
+fn sz? StdOut.writen(&self, char[] s) {
 	if (self.end + s.len + 1 >= self.buffer.len) {
 		self.stdout.write(self.buffer[0:self.end])!;
 		self.end = 0;
@@ -35,8 +35,8 @@ fn void? StdOut.flush(&self) {
 struct BufReader {
 	InStream wrapped_stream;
 	char[] bytes;
-	usz read_idx;
-	usz write_idx;
+	sz read_idx;
+	sz write_idx;
 }
 
 fn void BufReader.init(&self, InStream stream, char[] buf) {
@@ -64,7 +64,7 @@ fn void? BufReader.refill(&self) @inline
 // advances the read_idx by n bytes.
 // triggers a read if necessary.
 // Should advance beyond write_idx, but only checks in debug.
-fn void? BufReader.advance(&self, usz n) {
+fn void? BufReader.advance(&self, sz n) {
 	self.read_idx += n;
 	// leaving this in cause undefined behavior under release?
 	//assert(self.read_idx > self.write_idx);
@@ -111,7 +111,7 @@ macro char[]? readline(rdr = BufReader, char[] out_buf)
 			out_buf[out_buf_idx:label_len] = buf[0:label_len];
 			out_buf_idx += label_len;
 			// ignore EOF here, handle on next readline
-			if (catch err = rdr.advance((usz)(label_len + 1))) {
+			if (catch err = rdr.advance((sz)(label_len + 1))) {
 				if (err != io::EOF) {
 					return err~;
 				}
